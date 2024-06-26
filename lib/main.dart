@@ -1,61 +1,87 @@
+import 'package:appinio_video_player/appinio_video_player.dart';
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+// import 'package:video_training/appinio_video_player.dart';
 
-void main() => runApp(const VideoApp());
-
-/// Stateful widget to fetch and then display video content.
-class VideoApp extends StatefulWidget {
-  const VideoApp({super.key});
-
-  @override
-  _VideoAppState createState() => _VideoAppState();
+void main() {
+  runApp(const MyApp());
 }
 
-class _VideoAppState extends State<VideoApp> {
-  late VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = VideoPlayerController.asset('assets/video/mm.mp4')
-      ..initialize().then((_) {
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-        setState(() {});
-      });
-  }
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Video Demo',
-      home: Scaffold(
-        body: Center(
-          child: _controller.value.isInitialized
-              ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
-              : Container(),
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              _controller.value.isPlaying
-                  ? _controller.pause()
-                  : _controller.play();
-            });
-          },
-          child: Icon(
-            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-          ),
-        ),
+      debugShowCheckedModeBanner: false,
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
       ),
+      home: const MyWidget(),
+    );
+  }
+}
+
+class MyWidget extends StatefulWidget {
+  const MyWidget({super.key});
+
+  @override
+  State<MyWidget> createState() => _MyWidgetState();
+}
+
+class _MyWidgetState extends State<MyWidget> {
+  late VideoPlayerController videoPlayerController;
+  late CustomVideoPlayerController _customVideoPlayerController;
+
+  String videoUrl =
+      "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+
+  @override
+  void initState() {
+    super.initState();
+    initVideoPlay();
+  }
+
+  initVideoPlay() {
+    videoPlayerController =
+        VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+          ..initialize().then((value) => setState(() {}));
+    _customVideoPlayerController = CustomVideoPlayerController(
+      context: context,
+      videoPlayerController: videoPlayerController,
     );
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _customVideoPlayerController.dispose();
     super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Theme.of(context).primaryColor,
+        title: const Text(
+          "Video Player",
+          style: TextStyle(
+              color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            CustomVideoPlayer(
+                customVideoPlayerController: _customVideoPlayerController),
+          ],
+        ),
+      ),
+    );
   }
 }
